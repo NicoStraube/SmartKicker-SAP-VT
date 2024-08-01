@@ -1,4 +1,3 @@
-import os
 import socket
 import threading
 
@@ -74,10 +73,10 @@ class Server:
 
 
 # Create a server object
-host = "192.168.248.132"  # localhost
-print(os.environ.keys())
-print(f'{os.getenv('host_address')}')
-print(f'{os.environ.get('host_address')}')
+host = "192.168.248.143"  # localhost
+# print(os.environ.keys())
+# print(f'{os.getenv('host_address')}')
+# print(f'{os.environ.get('host_address')}')
 port = 2024
 server = Server(host, port)
 try:

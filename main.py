@@ -8,6 +8,7 @@ from ximea import xiapi
 
 
 class DetectionThread(threading.Thread):
+
     def __init__(self, client_socket):
         super().__init__()
         self.client_socket = client_socket
