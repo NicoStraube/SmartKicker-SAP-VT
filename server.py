@@ -1,3 +1,4 @@
+import os
 import socket
 import threading
 
@@ -45,6 +46,7 @@ class Server:
             if not data:
                 detection_thread.stop()
                 client_socket.close()
+                print("no data, stopping")
                 break
 
             # Send the received data to the other client
@@ -54,6 +56,8 @@ class Server:
 
         # help(client_socket)
         # Remove the client from the clients dictionary
+        print(f"{self.clients}")
+        print(f'removing client {client_address}')
         del self.clients[client_address]
 
         # Close the client socket
@@ -71,11 +75,13 @@ class Server:
 
 # Create a server object
 host = "192.168.248.132"  # localhost
+print(os.environ.keys())
+print(f'{os.getenv('host_address')}')
+print(f'{os.environ.get('host_address')}')
 port = 2024
 server = Server(host, port)
 try:
     server.start()
-
 except Exception as e:
     print(e)
     server.stop()

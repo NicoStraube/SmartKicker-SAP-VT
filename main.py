@@ -47,17 +47,17 @@ class DetectionThread(threading.Thread):
 
         if goal_box_left[0][0] <= center_x <= goal_box_left[1][0] and goal_box_left[0][1] <= center_y <= \
                 goal_box_left[1][1]:
-            return "white", time.time()
+            return "black", time.time()
         elif goal_box_right[0][0] <= center_x <= goal_box_right[1][0] and goal_box_right[0][1] <= center_y <= \
                 goal_box_right[1][1]:
-            return "blue", time.time()
+            return "white", time.time()
         else:
             return "", last_goal_time
 
     def calculate_speed(positions, time_interval):
 
         DISTANCE_BETWEEN_GOALS_METERS = 1.2
-        DISTANCE_BETWEEN_GOALS_PIXELS = 511
+        DISTANCE_BETWEEN_GOALS_PIXELS = 512
 
         x = positions[-1][0]
         y = positions[-1][1]
@@ -101,11 +101,15 @@ class DetectionThread(threading.Thread):
 
         cam.open_device_by_SN('20851151')
         cam.set_imgdataformat('XI_RGB24')
-        cam.set_exposure(20000)
+        # cam.set_exposure(5000) # old: 20000; unused, because of auto-exposure/auto-gain
         img = xiapi.Image()
         cam.start_acquisition()
         cam.set_downsampling('XI_DWN_2x2')
-        cam.disable_aeag()
+        # cam.disable_aeag() auto-exposure/auto-gain
+        cam.enable_aeag()  # "Exposure and gain will be used (50%:50%)
+        print('SmartKicker_DEBUG: default AEAG_value is %i' % cam.get_aeag_level())
+        cam.set_aeag_level(15)
+        print('SmartKicker_DEBUG: AEAG_value after change %i' % cam.get_aeag_level())
         cam.disable_bpc()
         cam.disable_auto_wb()
         cam.set_height(310)
@@ -124,15 +128,15 @@ class DetectionThread(threading.Thread):
         ball_was_shot = False
         last_shot_x = None
         last_shot_y = None
-        goals_blue = 0
+        goals_black = 0
         goals_white = 0
         current_score = ""
 
         last_timestamps = []
 
         last_goal_time = 0.0
-        host = "192.168.248.132"
-        port = 2024
+        # host = "192.168.248.132"
+        # port = 2024
 
         try:
             goal_box_left = [(50, 105), (89, 205)]
@@ -177,11 +181,11 @@ class DetectionThread(threading.Thread):
                             speed, distance = DetectionThread.calculate_speed(positions,
                                                                               last_timestamps[-1] - last_timestamps[-2])
                             print("Speed: ", speed)
-                            if team == "blue":
-                                goals_blue += 1
+                            if team == "black":
+                                goals_black += 1
                             else:
                                 goals_white += 1
-                            current_score = f"{goals_blue} : {goals_white}"
+                            current_score = f"{goals_black} : {goals_white}"
                             print(current_score)
                             data = {"player": team, "speed": speed, "score": current_score}
 
