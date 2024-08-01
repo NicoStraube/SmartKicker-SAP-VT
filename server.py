@@ -1,6 +1,8 @@
 import socket
 import threading
+
 from main import DetectionThread
+
 
 class Server:
     def __init__(self, host, port):
@@ -8,6 +10,7 @@ class Server:
         self.port = port
         self.clients = {}
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
     def start(self):
         # Create a socket object
 
@@ -18,7 +21,6 @@ class Server:
         self.server_socket.listen(2)
 
         print(f"Server started. Waiting for connections to backend host {self.host}...")
-
 
         while True:
             # Accept a connection from a client
@@ -32,13 +34,10 @@ class Server:
             detection_thread = DetectionThread(client_socket)
             detection_thread.start()
 
-
-
             # Start a new thread to handle the client's requests
-            threading.Thread(target=self.handle_client, args=(client_socket, detection_thread)).start()
+            threading.Thread(target=self.handle_client, args=(client_socket, client_address, detection_thread)).start()
 
-
-    def handle_client(self, client_socket, detection_thread):
+    def handle_client(self, client_socket, client_address, detection_thread):
         while True:
             # Receive data from the client
             data = client_socket.recv(1024)
@@ -48,14 +47,14 @@ class Server:
                 client_socket.close()
                 break
 
-
             # Send the received data to the other client
             for address, socket in self.clients.items():
                 if socket != client_socket:
                     socket.sendall(data)
 
+        # help(client_socket)
         # Remove the client from the clients dictionary
-        del self.clients[client_socket.getpeername()]
+        del self.clients[client_address]
 
         # Close the client socket
         client_socket.close()
@@ -70,9 +69,8 @@ class Server:
         print("Server stopped")
 
 
-
 # Create a server object
-host = "192.168.248.143"  # localhost
+host = "192.168.248.132"  # localhost
 port = 2024
 server = Server(host, port)
 try:
