@@ -1,18 +1,23 @@
 import json
 import threading
 import time
+#import RPi.GPIO as GPIO
+import datetime
 
 import cv2
 import numpy as np
 from ximea import xiapi
 
+#GPIO.setmode(GPIO.BCM) # GPIO numbers instead of board numbers
+#RELAY_LEFT_GPIO = 16
 
 class DetectionThread(threading.Thread):
-
     def __init__(self, client_socket):
         super().__init__()
         self.client_socket = client_socket
         self.stop_event = threading.Event()
+ #       GPIO.setup(RELAY_LEFT_GPIO, GPIO.OUT)
+  #      GPIO.output(RELAY_LEFT_GPIO, GPIO.LOW)
 
     def detect_red_color(frame):
 
@@ -48,6 +53,9 @@ class DetectionThread(threading.Thread):
 
         if goal_box_left[0][0] <= center_x <= goal_box_left[1][0] and goal_box_left[0][1] <= center_y <= \
                 goal_box_left[1][1]:
+   #         GPIO.output(RELAY_LEFT_GPIO, GPIO.HIGH)
+   #         time.sleep(200)
+   #         GPIO.output(RELAY_LEFT_GPIO, GPIO.LOW)
             return "black", time.time()
         elif goal_box_right[0][0] <= center_x <= goal_box_right[1][0] and goal_box_right[0][1] <= center_y <= \
                 goal_box_right[1][1]:
@@ -58,7 +66,7 @@ class DetectionThread(threading.Thread):
     def calculate_speed(positions, time_interval):
 
         DISTANCE_BETWEEN_GOALS_METERS = 1.2
-        DISTANCE_BETWEEN_GOALS_PIXELS = 512
+        DISTANCE_BETWEEN_GOALS_PIXELS = 511
 
         x = positions[-1][0]
         y = positions[-1][1]
@@ -98,7 +106,9 @@ class DetectionThread(threading.Thread):
             return 0, 0
 
     def run(self):
+        #print(cam)
         cam = xiapi.Camera()
+        print(f"{cam}")
 
         cam.open_device_by_SN('20851151')
         cam.set_imgdataformat('XI_RGB24')
@@ -171,7 +181,7 @@ class DetectionThread(threading.Thread):
                         print('SmartKicker_DEBUG: ball_wasshot: true')
                     else:
                         ball_was_shot = False
-                        # print('SmartKicker_DEBUG: ball_wasshot: false')
+                        print(f'{datetime.datetime.now().timestamp()} SmartKicker_DEBUG: ball_wasshot: false')
 
                     team, last_goal_time = DetectionThread.detect_goal(center_x, center_y, last_goal_time,
                                                                        goal_box_left, goal_box_right)
@@ -206,7 +216,7 @@ class DetectionThread(threading.Thread):
                 cv2.rectangle(frame, goal_box_right[0], goal_box_right[1], (0, 255, 0), 2)
 
                 # remove while production
-                cv2.imshow("Frame", frame)
+                # cv2.imshow("Frame", frame)
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
@@ -215,6 +225,7 @@ class DetectionThread(threading.Thread):
         except Exception as e:
             print(e)
         finally:
+            cam.stop_acquisition()
             cam.close_device()
 
     def stop(self):
