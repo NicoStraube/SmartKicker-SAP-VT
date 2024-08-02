@@ -45,6 +45,7 @@ class Server:
             if not data:
                 detection_thread.stop()
                 client_socket.close()
+
                 print("SmartKicker_DEBUG: no data, stopping detection thread and closing client_socket")
                 break
 

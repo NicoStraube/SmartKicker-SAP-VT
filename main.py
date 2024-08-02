@@ -1,4 +1,4 @@
-# import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import json
 import threading
 import time
@@ -7,18 +7,22 @@ import cv2
 import numpy as np
 from ximea import xiapi
 
-
 # GPIO.setmode(GPIO.BCM) # GPIO numbers instead of board numbers
-# RELAY_LEFT_GPIO = 16
+RELAY_LEFT_GPIO = 16
+RELAY_RIGHT_GPIO = 26
 
 class DetectionThread(threading.Thread):
     def __init__(self, client_socket):
         super().__init__()
         self.client_socket = client_socket
         self.stop_event = threading.Event()
-
-    #      GPIO.setup(RELAY_LEFT_GPIO, GPIO.OUT)
-    #      GPIO.output(RELAY_LEFT_GPIO, GPIO.LOW)
+        GPIO.cleanup()
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(RELAY_LEFT_GPIO, GPIO.OUT)
+        GPIO.setup(RELAY_RIGHT_GPIO, GPIO.OUT)
+        time.sleep(5)
+        GPIO.output(RELAY_LEFT_GPIO, GPIO.HIGH)
+#        GPIO.output(RELAY_RIGHT_GPIO, GPIO.LOW)
 
     def detect_red_color(frame):
 
@@ -54,9 +58,6 @@ class DetectionThread(threading.Thread):
 
         if goal_box_left[0][0] <= center_x <= goal_box_left[1][0] and goal_box_left[0][1] <= center_y <= \
                 goal_box_left[1][1]:
-            #         GPIO.output(RELAY_LEFT_GPIO, GPIO.HIGH)
-            #         time.sleep(200)
-            #         GPIO.output(RELAY_LEFT_GPIO, GPIO.LOW)
             return "black", time.time()
         elif goal_box_right[0][0] <= center_x <= goal_box_right[1][0] and goal_box_right[0][1] <= center_y <= \
                 goal_box_right[1][1]:
@@ -110,6 +111,13 @@ class DetectionThread(threading.Thread):
         # print(cam)
         cam = xiapi.Camera()
         print(f"SmartKicker_DEBUG: {cam}")
+
+        try:
+            cam.stop_acquisition()
+            cam.close_device()
+            GPIO.output(RELAY_LEFT_GPIO, 1)
+        except Exception as e:
+            print(e)
 
         cam.open_device_by_SN('20851151')
         cam.set_imgdataformat('XI_RGB24')
@@ -228,6 +236,7 @@ class DetectionThread(threading.Thread):
         finally:
             cam.stop_acquisition()
             cam.close_device()
+            GPIO.cleanup()
 
     def stop(self):
         self.stop_event.set()
