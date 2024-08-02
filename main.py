@@ -1,23 +1,24 @@
+# import RPi.GPIO as GPIO
 import json
 import threading
 import time
-#import RPi.GPIO as GPIO
-import datetime
 
 import cv2
 import numpy as np
 from ximea import xiapi
 
-#GPIO.setmode(GPIO.BCM) # GPIO numbers instead of board numbers
-#RELAY_LEFT_GPIO = 16
+
+# GPIO.setmode(GPIO.BCM) # GPIO numbers instead of board numbers
+# RELAY_LEFT_GPIO = 16
 
 class DetectionThread(threading.Thread):
     def __init__(self, client_socket):
         super().__init__()
         self.client_socket = client_socket
         self.stop_event = threading.Event()
- #       GPIO.setup(RELAY_LEFT_GPIO, GPIO.OUT)
-  #      GPIO.output(RELAY_LEFT_GPIO, GPIO.LOW)
+
+    #      GPIO.setup(RELAY_LEFT_GPIO, GPIO.OUT)
+    #      GPIO.output(RELAY_LEFT_GPIO, GPIO.LOW)
 
     def detect_red_color(frame):
 
@@ -53,9 +54,9 @@ class DetectionThread(threading.Thread):
 
         if goal_box_left[0][0] <= center_x <= goal_box_left[1][0] and goal_box_left[0][1] <= center_y <= \
                 goal_box_left[1][1]:
-   #         GPIO.output(RELAY_LEFT_GPIO, GPIO.HIGH)
-   #         time.sleep(200)
-   #         GPIO.output(RELAY_LEFT_GPIO, GPIO.LOW)
+            #         GPIO.output(RELAY_LEFT_GPIO, GPIO.HIGH)
+            #         time.sleep(200)
+            #         GPIO.output(RELAY_LEFT_GPIO, GPIO.LOW)
             return "black", time.time()
         elif goal_box_right[0][0] <= center_x <= goal_box_right[1][0] and goal_box_right[0][1] <= center_y <= \
                 goal_box_right[1][1]:
@@ -106,9 +107,9 @@ class DetectionThread(threading.Thread):
             return 0, 0
 
     def run(self):
-        #print(cam)
+        # print(cam)
         cam = xiapi.Camera()
-        print(f"{cam}")
+        print(f"SmartKicker_DEBUG: {cam}")
 
         cam.open_device_by_SN('20851151')
         cam.set_imgdataformat('XI_RGB24')
@@ -123,9 +124,9 @@ class DetectionThread(threading.Thread):
         print('SmartKicker_DEBUG: AEAG_value after change %i' % cam.get_aeag_level())
         cam.disable_bpc()
         cam.disable_auto_wb()
-        cam.set_height(310)
+        cam.set_height(330)  # original value: 310
         cam.set_offsetY(90)
-        cam.disable_ffc()
+        cam.disable_ffc()  # original: disable_ffc()
 
         framerate = cam.get_framerate_maximum()
         cam.set_framerate(framerate)
@@ -149,11 +150,11 @@ class DetectionThread(threading.Thread):
         # host = "192.168.248.132"
         # port = 2024
 
-        try:
+        try:  # [(breite-left, höhe-up),(breite-right,höhe-down)]
             goal_box_left = [(50, 105), (89, 205)]
             goal_box_right = [(600, 105), (640, 205)]
 
-            print('Waiting for ball movement.')
+            print('SmartKicker_DEBUG: Waiting for ball movement.')
             while not self.stop_event.is_set():
                 cam.get_image(img)
 
@@ -178,10 +179,10 @@ class DetectionThread(threading.Thread):
                         last_shot_x = center_x
                         last_shot_y = center_y
                         ball_wasshot = True
-                        print('SmartKicker_DEBUG: ball_wasshot: true')
+                        # print('SmartKicker_DEBUG: ball_wasshot: true')
                     else:
                         ball_was_shot = False
-                        print(f'{datetime.datetime.now().timestamp()} SmartKicker_DEBUG: ball_wasshot: false')
+                        # print(f'{datetime.datetime.now().timestamp()} SmartKicker_DEBUG: ball_wasshot: false')
 
                     team, last_goal_time = DetectionThread.detect_goal(center_x, center_y, last_goal_time,
                                                                        goal_box_left, goal_box_right)
@@ -191,14 +192,14 @@ class DetectionThread(threading.Thread):
                             average_speed = None
                             speed, distance = DetectionThread.calculate_speed(positions,
                                                                               last_timestamps[-1] - last_timestamps[-2])
-                            print("Speed: ", speed)
+                            print("SmartKicker_DEBUG: Speed: ", speed)
                             if team == "black":
                                 goals_black += 1
                             else:
                                 goals_white += 1
                             current_score = f"{goals_black} : {goals_white}"
-                            print(current_score)
                             data = {"player": team, "speed": speed, "score": current_score}
+                            print(data)
 
                             try:
                                 self.client_socket.sendall(json.dumps(data).encode("utf-8"))
@@ -216,7 +217,7 @@ class DetectionThread(threading.Thread):
                 cv2.rectangle(frame, goal_box_right[0], goal_box_right[1], (0, 255, 0), 2)
 
                 # remove while production
-                # cv2.imshow("Frame", frame)
+                cv2.imshow("Frame", frame)
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break

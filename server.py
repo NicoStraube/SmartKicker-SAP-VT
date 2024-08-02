@@ -20,7 +20,7 @@ class Server:
         # Listen for incoming connections
         self.server_socket.listen(2)
 
-        print(f"Server started. Waiting for connections to backend host {self.host}...")
+        print(f"SmartKicker_DEBUG: Server started. Waiting for connections to backend host {self.host}...")
 
         while True:
             # Accept a connection from a client
@@ -29,7 +29,7 @@ class Server:
             # Add the client to the clients dictionary
             self.clients[client_address] = client_socket
 
-            print(f"New connection from {client_address}")
+            print(f"SmartKicker_DEBUG: New connection from {client_address}")
 
             detection_thread = DetectionThread(client_socket)
             detection_thread.start()
@@ -45,7 +45,7 @@ class Server:
             if not data:
                 detection_thread.stop()
                 client_socket.close()
-                print("no data, stopping")
+                print("SmartKicker_DEBUG: no data, stopping detection thread and closing client_socket")
                 break
 
             # Send the received data to the other client
@@ -55,8 +55,8 @@ class Server:
 
         # help(client_socket)
         # Remove the client from the clients dictionary
-        print(f"{self.clients}")
-        print(f'removing client {client_address}')
+        #print(f"{self.clients}")
+        print(f'SmartKicker_DEBUG: Removing client {client_address}')
         del self.clients[client_address]
 
         # Close the client socket
@@ -69,7 +69,7 @@ class Server:
         self.clients.clear()
         self.server_socket.close()
         self.server_socket.shutdown(socket.SHUT_RDWR)
-        print("Server stopped")
+        print("SmartKicker_DEBUG: Server stopped")
 
 
 # Create a server object
