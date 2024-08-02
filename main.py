@@ -217,7 +217,7 @@ class DetectionThread(threading.Thread):
                 cv2.rectangle(frame, goal_box_right[0], goal_box_right[1], (0, 255, 0), 2)
 
                 # remove while production
-                cv2.imshow("Frame", frame)
+                # cv2.imshow("Frame", frame)
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
