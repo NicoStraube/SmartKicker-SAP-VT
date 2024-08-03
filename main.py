@@ -18,11 +18,8 @@ class DetectionThread(threading.Thread):
         self.stop_event = threading.Event()
         GPIO.cleanup()
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(RELAY_LEFT_GPIO, GPIO.OUT)
-        GPIO.setup(RELAY_RIGHT_GPIO, GPIO.OUT)
-        time.sleep(5)
-        GPIO.output(RELAY_LEFT_GPIO, GPIO.HIGH)
-#        GPIO.output(RELAY_RIGHT_GPIO, GPIO.LOW)
+        GPIO.setup(RELAY_LEFT_GPIO, GPIO.OUT, initial=GPIO.LOW)
+        GPIO.setup(RELAY_RIGHT_GPIO, GPIO.OUT, initial=GPIO.LOW)
 
     def detect_red_color(frame):
 
