@@ -2,7 +2,7 @@ import json
 import threading
 import time
 
-import RPi.GPIO as GPIO
+# import RPi.GPIO as GPIO
 import cv2
 import numpy as np
 from ximea import xiapi
@@ -17,10 +17,10 @@ class DetectionThread(threading.Thread):
         super().__init__()
         self.client_socket = client_socket
         self.stop_event = threading.Event()
-        GPIO.cleanup()
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(RELAY_LEFT_GPIO, GPIO.OUT, initial=GPIO.LOW)
-        GPIO.setup(RELAY_RIGHT_GPIO, GPIO.OUT, initial=GPIO.LOW)
+        # GPIO.cleanup()
+        # GPIO.setmode(GPIO.BCM)
+        # GPIO.setup(RELAY_LEFT_GPIO, GPIO.OUT, initial=GPIO.LOW)
+        # GPIO.setup(RELAY_RIGHT_GPIO, GPIO.OUT, initial=GPIO.LOW)
 
     def detect_red_color(frame):
 
@@ -111,11 +111,12 @@ class DetectionThread(threading.Thread):
         print(f"SmartKicker_DEBUG: {cam}")
 
         try:
-            cam.stop_acquisition()
-            cam.close_device()
-            GPIO.output(RELAY_LEFT_GPIO, 1)
+            if cam.CAM_OPEN:
+                cam.stop_acquisition()
+                cam.close_device()
+            # GPIO.output(RELAY_LEFT_GPIO, 1)
         except Exception as e:
-            print(e)
+            print("Exception while trying to clean up camera before opening it again: ", e)
 
         cam.open_device_by_SN('20851151')
         cam.set_imgdataformat('XI_RGB24')
@@ -125,9 +126,9 @@ class DetectionThread(threading.Thread):
         cam.set_downsampling('XI_DWN_2x2')
         # cam.disable_aeag() auto-exposure/auto-gain
         cam.enable_aeag()  # "Exposure and gain will be used (50%:50%)
-        print('SmartKicker_DEBUG: default AEAG_value is %i' % cam.get_aeag_level())
+        # print('SmartKicker_DEBUG: default AEAG_value is %i' % cam.get_aeag_level())
         cam.set_aeag_level(15)
-        print('SmartKicker_DEBUG: AEAG_value after change %i' % cam.get_aeag_level())
+        # print('SmartKicker_DEBUG: AEAG_value after change %i' % cam.get_aeag_level())
         cam.disable_bpc()
         cam.disable_auto_wb()
         cam.set_height(330)  # original value: 310
@@ -136,7 +137,7 @@ class DetectionThread(threading.Thread):
 
         framerate = cam.get_framerate_maximum()
         cam.set_framerate(framerate)
-        print('SmartKicker_DEBUG: Framerate set to %i' % framerate)
+        # print('SmartKicker_DEBUG: Framerate set to %i' % framerate)
 
         starting_time = time.time()
         frame_count = 0
@@ -160,7 +161,7 @@ class DetectionThread(threading.Thread):
             goal_box_left = [(50, 105), (89, 205)]
             goal_box_right = [(600, 105), (640, 205)]
 
-            print('SmartKicker_DEBUG: Waiting for ball movement.')
+            print('SmartKicker_DEBUG: Waiting for ball movement, game can start.')
             while not self.stop_event.is_set():
                 cam.get_image(img)
 
@@ -198,7 +199,7 @@ class DetectionThread(threading.Thread):
                             average_speed = None
                             speed, distance = DetectionThread.calculate_speed(positions,
                                                                               last_timestamps[-1] - last_timestamps[-2])
-                            print("SmartKicker_DEBUG: Speed: ", speed)
+                            # print("SmartKicker_DEBUG: Speed: ", speed)
                             if team == "black":
                                 goals_black += 1
                             else:
@@ -210,13 +211,13 @@ class DetectionThread(threading.Thread):
                             try:
                                 self.client_socket.sendall(json.dumps(data).encode("utf-8"))
                             except Exception as e:
-                                print(e)
+                                print("Error while sending JSON data to Frontend: ", e)
 
                     if len(positions) > 20:
                         positions.pop(0)
                         directions.pop(0)
 
-                    if center_x != None:
+                    if center_x is not None:
                         cv2.circle(frame, (center_x, center_y), 15, (255, 0, 0), -1)
 
                 cv2.rectangle(frame, goal_box_left[0], goal_box_left[1], (0, 255, 0), 2)
@@ -230,13 +231,12 @@ class DetectionThread(threading.Thread):
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
 
-
         except Exception as e:
             print(e)
         finally:
             cam.stop_acquisition()
             cam.close_device()
-            GPIO.cleanup()
+            # GPIO.cleanup()
 
     def stop(self):
         self.stop_event.set()

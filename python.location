@@ -1,0 +1,3 @@
+main=./python/main.py
+server=./python/server.py
+test=./python/applicationwrappertest.py

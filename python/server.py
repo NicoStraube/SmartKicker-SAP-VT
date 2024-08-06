@@ -1,7 +1,7 @@
 import socket
 import threading
 
-from PythonFiles.main import DetectionThread
+from main import DetectionThread
 
 
 class Server:
@@ -56,7 +56,7 @@ class Server:
 
         # help(client_socket)
         # Remove the client from the clients dictionary
-        #print(f"{self.clients}")
+        # print(f"{self.clients}")
         print(f'SmartKicker_DEBUG: Removing client {client_address}')
         del self.clients[client_address]
 
@@ -74,7 +74,7 @@ class Server:
 
 
 # Create a server object
-host = "192.168.248.143"  # localhost
+host = "192.168.248.209"  # localhost
 # print(os.environ.keys())
 # print(f'{os.getenv('host_address')}')
 # print(f'{os.environ.get('host_address')}')
