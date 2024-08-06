@@ -1,8 +1,8 @@
-import RPi.GPIO as GPIO
 import json
 import threading
 import time
 
+import RPi.GPIO as GPIO
 import cv2
 import numpy as np
 from ximea import xiapi
@@ -10,6 +10,7 @@ from ximea import xiapi
 # GPIO.setmode(GPIO.BCM) # GPIO numbers instead of board numbers
 RELAY_LEFT_GPIO = 16
 RELAY_RIGHT_GPIO = 26
+
 
 class DetectionThread(threading.Thread):
     def __init__(self, client_socket):
