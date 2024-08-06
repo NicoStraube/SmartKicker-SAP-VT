@@ -1,7 +1,7 @@
 import socket
 import threading
 
-from main import DetectionThread
+from PythonFiles.main import DetectionThread
 
 
 class Server:

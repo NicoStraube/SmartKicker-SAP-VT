@@ -221,6 +221,8 @@ class DetectionThread(threading.Thread):
                 cv2.rectangle(frame, goal_box_left[0], goal_box_left[1], (0, 255, 0), 2)
                 cv2.rectangle(frame, goal_box_right[0], goal_box_right[1], (0, 255, 0), 2)
 
+                # FloatingPointError.add_note(initial=GPIO.HIGH)
+
                 # remove while production
                 # cv2.imshow("Frame", frame)
 
